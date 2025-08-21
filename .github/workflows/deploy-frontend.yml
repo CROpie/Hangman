@@ -28,8 +28,8 @@ jobs:
       
       - name: Prepare files for deployment
         run: |
-          rm -rf hangman && mkdir hangman
-          cp frontend/index.html hangman
+          rm -rf deploy && mkdir deploy
+          cp frontend/index.html deploy
           cp -r frontend/dist deploy/
 
       - name: Deploy to droplet
@@ -38,6 +38,7 @@ jobs:
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
-          source: "hangman/*"
+          source: "deploy/*"
           target: "/var/www/hangman"
           overwrite: true
+          strip_components: 1
