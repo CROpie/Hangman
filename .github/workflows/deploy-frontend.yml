@@ -32,7 +32,7 @@ jobs:
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
-        source: "./frontend/index.html,./frontend/dist/*"
-        target: "/var/www/hangman"
-        strip_components: 1 # to remove /frontend
-        overwrite: true
+          source: "./frontend/index.html,./frontend/dist/*"
+          target: "/var/www/hangman"
+          strip_components: 1 # to remove /frontend
+          overwrite: true
