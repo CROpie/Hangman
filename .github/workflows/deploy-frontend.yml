@@ -25,6 +25,12 @@ jobs:
       - name: Build frontend
         working-directory: ./frontend
         run: npm run build
+      
+      - name: Prepare files for deployment
+        run: |
+          rm -rf hangman && mkdir hangman
+          cp frontend/index.html hangman
+          cp -r frontend/dist deploy/
 
       - name: Deploy to droplet
         uses: appleboy/scp-action@v0.1.5
@@ -32,7 +38,6 @@ jobs:
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
-          source: "./frontend/index.html,./frontend/dist/*"
+          source: "hangman/*"
           target: "/var/www/hangman"
-          strip_components: 1 # to remove /frontend
           overwrite: true
