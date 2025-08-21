@@ -19,9 +19,11 @@ jobs:
           node-version: latest
 
       - name: Install dependencies
+        working-directory: ./frontend
         run: npm ci
 
       - name: Build frontend
+        working-directory: ./frontend
         run: npm run build
 
       - name: Deploy to droplet
@@ -30,5 +32,5 @@ jobs:
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
-          source: "dist/*"
+          source: "frontend/dist/*"
           target: "/var/www/hangman"
