@@ -33,4 +33,4 @@ jobs:
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
           source: "./frontend/index.html,./frontend/dist/*"
-          target: "~/hangman"
+          target: "/var/www/hangman"
