@@ -9,6 +9,7 @@ add_executable(hangmanbackend ./src/main.cpp)
 target_include_directories(hangmanbackend PRIVATE
     ${CMAKE_SOURCE_DIR}/libs
     ${CMAKE_SOURCE_DIR}/libs/json
+    ${CMAKE_SOURCE_DIR}/libs/asio/include
 )
 
 find_package(Threads REQUIRED)
