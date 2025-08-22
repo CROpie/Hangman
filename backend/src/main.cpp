@@ -33,7 +33,8 @@ int main() {
     wsServer.init_asio();
     wsServer.set_message_handler(&onMessage);
 
-    wsServer.listen(9002);
+    asio::ip::tcp::endpoint ep(asio::ip::address::from_string("127.0.0.1"), 9002);
+    wsServer.listen(ep);
     wsServer.start_accept();
 
     std::cout << "Server started on ws://localhost:9002\n";
