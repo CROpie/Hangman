@@ -36,7 +36,7 @@ int main() {
     wsServer.set_message_handler(&onMessage);
 
     std::string host = "127.0.0.1";
-    int port = 8080;
+    int port = 9002;
 
     asio::ip::tcp::endpoint ep(asio::ip::address::from_string(host), port);
     wsServer.listen(ep);
