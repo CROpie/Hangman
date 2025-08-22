@@ -3,6 +3,7 @@
 #include <iostream>
 #include <algorithm>
 #include <set>
+#include <cstdlib>
 
 #define ASIO_STANDALONE
 #include <websocketpp/config/asio_no_tls.hpp>
@@ -34,11 +35,15 @@ int main() {
     wsServer.init_asio();
     wsServer.set_message_handler(&onMessage);
 
-    asio::ip::tcp::endpoint ep(asio::ip::address::from_string("127.0.0.1"), 9002);
+    std::string host = "127.0.0.1";
+    int port = 8080;
+
+    asio::ip::tcp::endpoint ep(asio::ip::address::from_string(host), port);
     wsServer.listen(ep);
+
     wsServer.start_accept();
 
-    std::cout << "Server started on ws://127.0.0.1:9002" << std::endl;
+    std::cout << "Server started on " << ep.address().to_string() << std::endl;
     wsServer.run();
     return 0;
 

@@ -1,6 +1,19 @@
-function init(): void {
+type Config = {
+    WS_HOST: string
+}
 
-    const ws = new WebSocket("wss://hangman.cropie.online/ws")
+async function loadConfig(): Promise<Config> {
+    const response = await fetch("dist/config.json");
+    console.log(response)
+    return response.json();
+}
+
+async function startSocket(): Promise<void> {
+
+    const config = await loadConfig()
+    console.log(config)
+//"wss://hangman.cropie.online/ws"
+    const ws = new WebSocket(config.WS_HOST)
 
     ws.onmessage = (event) => {
         console.log(event)
@@ -11,4 +24,8 @@ function init(): void {
     })
 }
 
-init()
+async function init() {
+    await startSocket()
+}
+
+await init()

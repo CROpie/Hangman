@@ -24,7 +24,7 @@ jobs:
 
       - name: Build frontend
         working-directory: ./frontend
-        run: npm run build
+        run: npm run build:prod
       
       - name: Prepare files for deployment
         run: |
@@ -59,6 +59,8 @@ jobs:
           make
           ls -A
 
+# Can't overwrite file that is currently running.
+# Instead, copy to tmp and move after stopping service
       - name: Deploy to droplet
         uses: appleboy/scp-action@v0.1.5
         with:
@@ -79,9 +81,6 @@ jobs:
           script: |
             sudo systemctl stop hangmanbackend
             cd /var/www/hangman/backend
-            ls ./tmp -l
             mv ./tmp/* .
-            ls ./tmp -l
-            ls -l
             rm -rf ./tmp
             sudo systemctl start hangmanbackend

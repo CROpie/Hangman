@@ -1,5 +1,13 @@
-function init() {
-    const ws = new WebSocket("wss://hangman.cropie.online");
+async function loadConfig() {
+    const response = await fetch("dist/config.json");
+    console.log(response);
+    return response.json();
+}
+async function startSocket() {
+    const config = await loadConfig();
+    console.log(config);
+    //"wss://hangman.cropie.online/ws"
+    const ws = new WebSocket(config.WS_HOST);
     ws.onmessage = (event) => {
         console.log(event);
     };
@@ -7,5 +15,8 @@ function init() {
         ws.send(e.key);
     });
 }
-init();
+async function init() {
+    await startSocket();
+}
+await init();
 export {};
