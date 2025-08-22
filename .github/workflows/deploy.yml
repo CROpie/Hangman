@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-and-deploy-frontend:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout code
@@ -44,7 +44,7 @@ jobs:
           strip_components: 1
 
   build-and-deploy-backend:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout code
