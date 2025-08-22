@@ -69,3 +69,12 @@ jobs:
           target: "/var/www/hangman/backend"
           overwrite: true
           strip_components: 2
+
+- name: Restart backend
+  uses: appleboy/ssh-action@v0.1.5
+  with:
+    host: ${{ secrets.DROPLET_HOST }}
+    username: ${{ secrets.DROPLET_USER }}
+    key: ${{ secrets.DROPLET_SSH_KEY }}
+    script: |
+      sudo systemctl restart hangmanbackend
