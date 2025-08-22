@@ -79,9 +79,9 @@ jobs:
           script: |
             sudo systemctl stop hangmanbackend
             cd /var/www/hangman/backend
-            ls ./tmp
+            ls ./tmp -l
             mv ./tmp/* .
-            ls ./tmp
-            ls
+            ls ./tmp -l
+            ls -l
             rm -rf ./tmp
             sudo systemctl start hangmanbackend
