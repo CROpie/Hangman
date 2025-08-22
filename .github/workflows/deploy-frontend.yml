@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  build-and-deploy-frontend:
     runs-on: ubuntu-latest
 
     steps:
@@ -40,5 +40,31 @@ jobs:
           key: ${{ secrets.DROPLET_SSH_KEY }}
           source: "deploy/*"
           target: "/var/www/hangman"
+          overwrite: true
+          strip_components: 1
+
+  build-and-deploy-backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build backend
+        working-directory: ./backend
+        run: |
+          mkdir -p build
+          cd ./build
+          cmake ..
+          make
+
+      - name: Deploy to droplet
+        uses: appleboy/scp-action@v0.1.5
+        with:
+          host: ${{ secrets.DROPLET_HOST }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          source: "build/hangmanbackend"
+          target: "/var/www/hangman/backend"
           overwrite: true
           strip_components: 1
