@@ -65,6 +65,5 @@ jobs:
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
           source: "build/hangmanbackend"
-          target: "/var/www/hangman/backend"
+          target: "/var/www/hangman"
           overwrite: true
-          strip_components: 1
