@@ -66,7 +66,7 @@ jobs:
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
           source: "backend/build/hangmanbackend"
-          target: "/var/www/hangman/backend"
+          target: "/var/www/hangman/backend/tmp"
           overwrite: true
           strip_components: 2
 
@@ -77,4 +77,11 @@ jobs:
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
           script: |
-            sudo systemctl restart hangmanbackend
+            sudo systemctl stop hangmanbackend
+            cd /var/www/hangman/backend
+            ls ./tmp
+            mv ./tmp/* .
+            ls ./tmp
+            ls
+            rm -rf ./tmp
+            sudo systemctl start hangmanbackend
