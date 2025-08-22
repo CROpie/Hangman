@@ -1,4 +1,4 @@
-name: Deploy Frontend
+name: Deploy
 
 on:
   push:
@@ -57,6 +57,7 @@ jobs:
           cd ./build
           cmake ..
           make
+          ls -A
 
       - name: Deploy to droplet
         uses: appleboy/scp-action@v0.1.5
@@ -64,6 +65,6 @@ jobs:
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
-          source: "build/hangmanbackend"
+          source: "backend/build/hangmanbackend"
           target: "/var/www/hangman"
           overwrite: true
