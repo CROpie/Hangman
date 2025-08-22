@@ -1,6 +1,6 @@
 function init(): void {
 
-    const ws = new WebSocket("wss://hangman.cropie.online")
+    const ws = new WebSocket("wss://hangman.cropie.online/ws")
 
     ws.onmessage = (event) => {
         console.log(event)
