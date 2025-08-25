@@ -5,46 +5,31 @@
 #include <set>
 #include <cstdlib>
 
-#define ASIO_STANDALONE
-#include <websocketpp/config/asio_no_tls.hpp>
-#include <websocketpp/server.hpp>
+#include "minisocket.hpp"
 
 #include "json.hpp"
 using json = nlohmann::json;
 
-typedef websocketpp::server<websocketpp::config::asio> server;
-server wsServer;
+minisocket::Server server;
 
-void onMessage(websocketpp::connection_hdl hdl, server::message_ptr msg) {
+void onMessage(int client_fd, const std::string& msg) {
 
-    std::cout << "onMessage\n";
-
-    // if (msg->get_payload().empty()) return;
-
-    std::cout << msg->get_payload();
+    std::cout << "Received from client " << client_fd << ": " << msg << "\n";
 
     json state;
     state["received"] = true;
     state["message"] = "test";
-    wsServer.send(hdl, state.dump(), websocketpp::frame::opcode::text);
-
+    state["client_fd"] = client_fd;
+    server.sendFrame(client_fd, state.dump(2));
 }
 
 int main() {
 
-    wsServer.init_asio();
-    wsServer.set_message_handler(&onMessage);
+    const char* port = "9002";
 
-    std::string host = "127.0.0.1";
-    int port = 9002;
+    server.init(port, &onMessage, true);
+    std::cout << "Server started on " << port << std::endl;
 
-    asio::ip::tcp::endpoint ep(asio::ip::address::from_string(host), port);
-    wsServer.listen(ep);
-
-    wsServer.start_accept();
-
-    std::cout << "Server started on " << ep.address().to_string() << std::endl;
-    wsServer.run();
+    server.run();
     return 0;
-
 }
