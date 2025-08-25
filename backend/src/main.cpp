@@ -12,19 +12,19 @@ using json = nlohmann::json;
 
 minisocket::Server server;
 
-void onMessage(int client, const std::string& msg) {
+void onMessage(int client_fd, const std::string& msg) {
 
-    std::cout << "Received from client " << client << ": " << msg << "\n";
+    std::cout << "Received from client " << client_fd << ": " << msg << "\n";
 
     json state;
     state["received"] = true;
     state["message"] = "test";
-    server.sendFrame(client, state.dump(2));
+    state["client_fd"] = client_fd;
+    server.sendFrame(client_fd, state.dump(2));
 }
 
 int main() {
 
-    // std::string host = "127.0.0.1";
     const char* port = "9002";
 
     server.init(port, &onMessage, true);
