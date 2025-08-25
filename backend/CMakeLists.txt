@@ -8,10 +8,15 @@ set(CMAKE_BUILD_TYPE Debug)
 add_executable(hangmanbackend ./src/main.cpp)
 
 target_include_directories(hangmanbackend PRIVATE
-    ${CMAKE_SOURCE_DIR}/libs
     ${CMAKE_SOURCE_DIR}/libs/json
-    ${CMAKE_SOURCE_DIR}/libs/asio/include
+    ${CMAKE_SOURCE_DIR}/include
 )
 
 find_package(Threads REQUIRED)
 target_link_libraries(hangmanbackend PRIVATE Threads::Threads)
+
+# Find OpenSSL
+find_package(OpenSSL REQUIRED)
+
+# Link OpenSSL
+target_link_libraries(hangmanbackend PRIVATE OpenSSL::Crypto)
