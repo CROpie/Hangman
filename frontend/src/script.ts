@@ -2,6 +2,47 @@ type Config = {
     WS_HOST: string
 }
 
+type HangmanResponse = {
+    isWin: boolean
+    guessState: string
+}
+
+interface RenderService {
+    init: () => void
+    render: (guessState: string) => void
+}
+
+function renderer() {
+
+    const FONT = "30px Arial"
+    const COLOUR = "blue"
+
+    let canvas: HTMLCanvasElement
+    let ctx: CanvasRenderingContext2D
+    
+    function init() {
+        const canvasEl = document.getElementById("renderCanvas")
+        if (!(canvasEl instanceof HTMLCanvasElement)) throw new Error("no canvas")
+        canvas = canvasEl
+
+        const ctxEl = canvas.getContext("2d")
+        if (!ctxEl) throw new Error("2D context not supported")
+        ctx = ctxEl
+
+        ctx.font = FONT
+        ctx.fillStyle = COLOUR
+    }
+
+    function render(guessState: string) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.fillText(guessState, 50, 100)
+    }
+
+    return { init, render }
+
+}
+
+
 function parseResponse(event: any) {
     if (typeof event != "string") throw new Error(`Event was not a string: ${event}`)
 
@@ -18,7 +59,8 @@ async function loadConfig(): Promise<Config> {
     return response.json();
 }
 
-async function startSocket(): Promise<void> {
+
+async function startSocket(renderService: RenderService): Promise<void> {
 
     const config = await loadConfig()
 
@@ -26,18 +68,25 @@ async function startSocket(): Promise<void> {
 
     ws.onmessage = (event) => {
 
-        const response = parseResponse(event.data)
-        console.log(response)
+        const response: HangmanResponse = parseResponse(event.data)
+        renderService.render(response.guessState)
 
+        if (response.isWin) {
+            alert("You win!!")
+            ws.send(JSON.stringify({isReset: true}))
+        }
     }
     
     document.addEventListener("keypress", (e) => {
-        ws.send(e.key);
+        ws.send(JSON.stringify({letter: e.key}));
     })
 }
 
 async function init() {
-    await startSocket()
+    const renderService = renderer()
+    renderService.init()
+
+    await startSocket(renderService)
 }
 
 await init()
