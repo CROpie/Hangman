@@ -35,7 +35,7 @@ void getWordFromDB() {
     int num = getRandom(N);
 
     std::ostringstream sqlString;
-    sqlString << "SELECT word FROM hangTable WHERE id = " << N << ";";
+    sqlString << "SELECT * FROM hangTable WHERE id = " << N << ";";
     json response = dbConnector.connectQueryClose(sqlString.str());
     word = response.value("word", "");
     if (word.empty()) throw std::runtime_error("unable to retrieve word from DB");
