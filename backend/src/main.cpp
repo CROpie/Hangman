@@ -17,7 +17,7 @@ minisocket::Server server;
 dbConn::Connector dbConnector("127.0.0.1", "12345");
 
 std::string word;
-std::set<char> answer(word.begin(), word.end());
+std::set<char> answer;
 std::set<char> guesses;
 std::set<char> correctGuesses;
 
@@ -35,10 +35,12 @@ void getWordFromDB() {
     int num = getRandom(N);
 
     std::ostringstream sqlString;
-    sqlString << "SELECT * FROM hangTable WHERE id = " << N << ";";
+    sqlString << "SELECT * FROM hangTable WHERE id = " << num << ";";
     json response = dbConnector.connectQueryClose(sqlString.str());
-    word = response.value("word", "");
+    word = response[0].value("word", "");
     if (word.empty()) throw std::runtime_error("unable to retrieve word from DB");
+
+    answer = std::set<char>(word.begin(), word.end());
 }
 
 void sendState(int client_fd, json state) {
