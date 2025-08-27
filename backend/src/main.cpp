@@ -5,19 +5,41 @@
 #include <set>
 #include <cstdlib>
 #include <sstream> // ostringstream
+#include <random>
 
 #include "minisocket.hpp"
+#include "dbconn.hpp"
 
 #include "json.hpp"
 using json = nlohmann::json;
 
 minisocket::Server server;
-std::string word = "peanut";
+dbConn::Connector dbConnector("127.0.0.1", "12345");
+
+std::string word;
 std::set<char> answer(word.begin(), word.end());
 std::set<char> guesses;
 std::set<char> correctGuesses;
 
+int getRandom(int N) {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dist(1, N);
 
+    return dist(gen);
+}
+
+void getWordFromDB() {
+    // number of words in the DB
+    int N = 2;
+    int num = getRandom(N);
+
+    std::ostringstream sqlString;
+    sqlString << "SELECT word FROM hangTable WHERE id = " << N << ";";
+    json response = dbConnector.connectQueryClose(sqlString.str());
+    word = response.value("word", "");
+    if (word.empty()) throw std::runtime_error("unable to retrieve word from DB");
+}
 
 void sendState(int client_fd, json state) {
     server.sendFrame(client_fd, state.dump(2));
@@ -48,6 +70,7 @@ void resetGame(int client_fd) {
     json response = {{"isWin", false}};
     guesses.clear();
     correctGuesses.clear();
+    getWordFromDB();
     response["guessState"] = determineGuessState();
     sendState(client_fd, response);
 }
@@ -85,10 +108,10 @@ void onMessage(int client_fd, const std::string& msg) {
 
 int main() {
 
-    const char* port = "9002";
+    getWordFromDB();
 
-    server.init(port, &onMessage, true);
-    std::cout << "Server started on " << port << std::endl;
+    server.init("9002", &onMessage, true);
+    std::cout << "Server started on " << "9002" << std::endl;
 
     server.run();
     return 0;
