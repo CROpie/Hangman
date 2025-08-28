@@ -67,7 +67,7 @@ async function startSocket(renderService: RenderService): Promise<void> {
     const ws = new WebSocket(config.WS_HOST)
 
     ws.onopen = () => {
-        ws.send(JSON.stringify({hasConnected: true}))
+        ws.send(JSON.stringify({initialConnect: true}))
     }
 
     ws.onmessage = (event) => {

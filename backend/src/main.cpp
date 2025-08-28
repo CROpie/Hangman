@@ -86,7 +86,7 @@ void onMessage(int client_fd, const std::string& msg) {
     json response = {{"isWin", false}};
 
     // check if this is the initial connection, if so send current state
-    if (request.value("initalConnect", false)) {
+    if (request.value("initialConnect", false)) {
         response["guessState"] = determineGuessState();
         sendState(client_fd, response);
         return;
