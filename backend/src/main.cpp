@@ -44,7 +44,8 @@ void getWordFromDB() {
 }
 
 void sendState(int client_fd, json state) {
-    server.sendFrame(client_fd, state.dump(2));
+    // server.sendFrame(client_fd, state.dump(2));
+    server.sendFrameToAll(state.dump(2));
 }
 
 bool isCharInSet(char ch, std::set<char> set) {

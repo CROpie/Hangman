@@ -39,6 +39,9 @@ async function loadConfig() {
 async function startSocket(renderService) {
     const config = await loadConfig();
     const ws = new WebSocket(config.WS_HOST);
+    ws.onopen = () => {
+        ws.send(JSON.stringify({ initialConnect: true }));
+    };
     ws.onmessage = (event) => {
         const response = parseResponse(event.data);
         renderService.render(response.guessState);
