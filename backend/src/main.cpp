@@ -83,10 +83,17 @@ void onMessage(int client_fd, const std::string& msg) {
 
     json request = json::parse(msg);
 
-    // default to false if missing
-    bool isReset = request.value("isReset", false);
+    json response = {{"isWin", false}};
 
-    if (isReset) {
+    // check if this is the initial connection, if so send current state
+    if (request.value("initalConnect", false)) {
+        response["guessState"] = determineGuessState();
+        sendState(client_fd, response);
+        return;
+    }
+
+    // check if need to reset the game
+    if (request.value("isReset", false)) {
         resetGame(client_fd);
         return;
     }
@@ -96,8 +103,6 @@ void onMessage(int client_fd, const std::string& msg) {
 
     char ch = letter[0];
     guesses.insert(ch);
-
-    json response = {{"isWin", false}};
 
     if (isCharInSet(ch, answer)) correctGuesses.insert(ch);
 
