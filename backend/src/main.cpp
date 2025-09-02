@@ -9,6 +9,7 @@
 
 #include "minisocket.hpp"
 #include "dbconn.hpp"
+#include "main.h"
 
 #include "json.hpp"
 using json = nlohmann::json;
@@ -16,10 +17,13 @@ using json = nlohmann::json;
 minisocket::Server server;
 dbConn::Connector dbConnector("127.0.0.1", "12345");
 
+// having these in global means they're available in all threads
 std::string word;
 std::set<char> answer;
 std::set<char> guesses;
 std::set<char> correctGuesses;
+
+std::unordered_map<int, ClientState> clients;
 
 int getRandom(int N) {
     std::random_device rd;
@@ -43,9 +47,21 @@ void getWordFromDB() {
     answer = std::set<char>(word.begin(), word.end());
 }
 
-void sendState(int client_fd, json state) {
-    // server.sendFrame(client_fd, state.dump(2));
-    server.sendFrameToAll(state.dump(2));
+json serializeClientState(ClientState clientState) {
+    json meta{{"username", clientState.meta.username}};
+    json gameState{{"isWin", clientState.gameState.isWin}, {"guessState", clientState.gameState.guessState}};
+    json state{{"meta", meta}, {"gameState", gameState}};
+    return state;
+}
+
+void sendGameState(int client_fd, json state) {
+    server.sendFrame(client_fd, state.dump(2));
+}
+
+void sendGameStateAll() {
+    for (auto& [client_fd, clientState] : clients) {
+        sendGameState(client_fd, serializeClientState(clientState));
+    }
 }
 
 bool isCharInSet(char ch, std::set<char> set) {
@@ -70,12 +86,27 @@ std::string determineGuessState() {
 }
 
 void resetGame(int client_fd) {
-    json response = {{"isWin", false}};
+    
     guesses.clear();
     correctGuesses.clear();
     getWordFromDB();
-    response["guessState"] = determineGuessState();
-    sendState(client_fd, response);
+
+    std::string guessState = determineGuessState();
+
+    for (auto& [client_fd, clientState] : clients) {
+        clientState.gameState.isWin = false;
+        clients[client_fd].gameState.guessState = guessState;
+    }
+
+    sendGameStateAll();
+    
+}
+
+void handleInitialConnect(int client_fd, json request) {
+    ClientState clientState;
+    clientState.meta.username = request.value("username", "");
+    clientState.gameState.guessState = determineGuessState();
+    clients[client_fd] = clientState;
 }
 
 void onMessage(int client_fd, const std::string& msg) {
@@ -84,12 +115,10 @@ void onMessage(int client_fd, const std::string& msg) {
 
     json request = json::parse(msg);
 
-    json response = {{"isWin", false}};
-
     // check if this is the initial connection, if so send current state
     if (request.value("initialConnect", false)) {
-        response["guessState"] = determineGuessState();
-        sendState(client_fd, response);
+        handleInitialConnect(client_fd, request);
+        sendGameState(client_fd, serializeClientState(clients[client_fd]));
         return;
     }
 
@@ -107,11 +136,16 @@ void onMessage(int client_fd, const std::string& msg) {
 
     if (isCharInSet(ch, answer)) correctGuesses.insert(ch);
 
-    response["guessState"] = determineGuessState();
+    // clients are sharing game state in this iteration
+    std::string guessState = determineGuessState(); 
+    bool isWin = correctGuesses.size() == answer.size();
+    
+    for (auto& [client_fd, clientState] : clients) {
+        clientState.gameState.guessState = guessState;
+        clientState.gameState.isWin = isWin;
+    }
 
-    if (correctGuesses.size() == answer.size()) response["isWin"] = true;
-
-    sendState(client_fd, response);
+    sendGameStateAll();
 }
 
 int main() {

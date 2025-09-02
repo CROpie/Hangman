@@ -1,3 +1,11 @@
+function setCookie(name, value, days = 1) {
+    const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
+    document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
+}
+function getCookie(name) {
+    const matches = document.cookie.match(new RegExp(`(?:^|; )${name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1')}=([^;]*)`));
+    return matches ? decodeURIComponent(matches[1]) : undefined;
+}
 function renderer() {
     const FONT = "30px Arial";
     const COLOUR = "blue";
@@ -15,8 +23,9 @@ function renderer() {
         ctx.font = FONT;
         ctx.fillStyle = COLOUR;
     }
-    function render(guessState) {
+    function render(guessState, username) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillText(username, 30, 30);
         ctx.fillText(guessState, 50, 100);
     }
     return { init, render };
@@ -38,14 +47,19 @@ async function loadConfig() {
 }
 async function startSocket(renderService) {
     const config = await loadConfig();
+    const userdata = getCookie("user");
+    if (!userdata)
+        throw new Error("No user data");
+    const username = JSON.parse(userdata).username;
     const ws = new WebSocket(config.WS_HOST);
     ws.onopen = () => {
-        ws.send(JSON.stringify({ initialConnect: true }));
+        ws.send(JSON.stringify({ initialConnect: true, username }));
     };
     ws.onmessage = (event) => {
         const response = parseResponse(event.data);
-        renderService.render(response.guessState);
-        if (response.isWin) {
+        const { meta, gameState } = response;
+        renderService.render(gameState.guessState, meta.username);
+        if (gameState.isWin) {
             alert("You win!!");
             ws.send(JSON.stringify({ isReset: true }));
         }
@@ -54,10 +68,53 @@ async function startSocket(renderService) {
         ws.send(JSON.stringify({ letter: e.key }));
     });
 }
+async function isTokenValid(token) {
+    try {
+        const response = await fetch("http://localhost:8000/api/authenticate", {
+            method: "GET",
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        let json;
+        try {
+            json = await response.json();
+        }
+        catch {
+            json = null;
+            // data might be empty or not json
+        }
+        if (!response.ok) {
+            console.error(json?.error ?? "something went wrong...");
+            return false;
+        }
+        if (!json?.data) {
+            console.error("Response did not contain data object");
+            return false;
+        }
+        setCookie("user", JSON.stringify(json.data));
+        return true;
+    }
+    catch (error) {
+        console.error("Network error: request failed");
+        return false;
+    }
+}
 async function init() {
+    const token = getCookie('token');
+    if (!token) {
+        console.log("no token");
+        window.location.href = "http://localhost:1234";
+        return;
+    }
+    if (!await isTokenValid(token)) {
+        console.log("not valid token");
+        window.location.href = "http://localhost:1234";
+        return;
+    }
     const renderService = renderer();
     renderService.init();
     await startSocket(renderService);
 }
-await init();
+onload = init;
 export {};
