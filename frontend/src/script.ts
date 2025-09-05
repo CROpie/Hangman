@@ -19,6 +19,8 @@ function renderer() {
 
     let canvas: HTMLCanvasElement
     let ctx: CanvasRenderingContext2D
+    const image = new Image()
+    image.src = "https://hangman.cropie.online/avatars/rp.jpg"
     
     function init() {
         const canvasEl = document.getElementById("renderCanvas")
@@ -37,6 +39,7 @@ function renderer() {
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         ctx.fillText(username, 30, 30)
         ctx.fillText(guessState, 50, 100)
+        ctx.drawImage(image, 0, 30, 30, 30)
     }
 
     return { init, render }

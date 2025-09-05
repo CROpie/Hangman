@@ -148,11 +148,25 @@ void onMessage(int client_fd, const std::string& msg) {
     sendGameStateAll();
 }
 
+void onDisconnect(int client_fd) {
+    std::cout << "Someone has left the game" << std::endl;
+    clients.erase(client_fd);
+    json msg{{"id of player who left", client_fd}};
+    for (auto& [client_fd, clientState] : clients) {
+        server.sendFrame(client_fd, msg.dump(2));
+    }
+}
+
 int main() {
 
     getWordFromDB();
 
-    server.init("9002", &onMessage, true);
+    server.init("9002");
+
+    // Event-callback pattern / observer pattern
+    server.on_message = onMessage;
+    server.on_disconnect = onDisconnect;
+
     std::cout << "Server started on " << "9002" << std::endl;
 
     server.run();

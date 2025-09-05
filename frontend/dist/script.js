@@ -11,6 +11,8 @@ function renderer() {
     const COLOUR = "blue";
     let canvas;
     let ctx;
+    const image = new Image();
+    image.src = "https://hangman.cropie.online/avatars/rp.jpg";
     function init() {
         const canvasEl = document.getElementById("renderCanvas");
         if (!(canvasEl instanceof HTMLCanvasElement))
@@ -27,6 +29,7 @@ function renderer() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.fillText(username, 30, 30);
         ctx.fillText(guessState, 50, 100);
+        ctx.drawImage(image, 0, 30, 30, 30);
     }
     return { init, render };
 }
@@ -57,6 +60,7 @@ async function startSocket(renderService) {
     };
     ws.onmessage = (event) => {
         const response = parseResponse(event.data);
+        console.log(JSON.stringify(response, null, 2));
         const { meta, gameState } = response;
         renderService.render(gameState.guessState, meta.username);
         if (gameState.isWin) {
