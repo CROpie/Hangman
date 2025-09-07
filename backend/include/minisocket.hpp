@@ -31,28 +31,33 @@
 
 namespace minisocket {
 
-class Server {
+class MiniSocket {
     private:
-    int socket_fd{-1};
-    bool isRunning{false};
-    bool isDebug{true};
+        int socket_fd{-1};
+        bool isRunning{false};
+        bool isDebug{true};
+        const char* port;
 
-    std::mutex clients_mutex;
-    std::set<int> clients;
+        std::mutex clients_mutex;
+        std::set<int> clients;
 
-    struct Frame {
-        bool fin;
-        uint8_t opcode;
-        bool masked;
-        uint64_t length;
-        unsigned char mask[4];
-        std::string payload;
-    };
+        struct Frame {
+            bool fin;
+            uint8_t opcode;
+            bool masked;
+            uint64_t length;
+            unsigned char mask[4];
+            std::string payload;
+        };
 
     public:
         // using MessageHandler = std::function<void(int client, const std::string&)>;
         std::function<void(int client_fd, const std::string& payload)> on_message;
         std::function<void(int)> on_disconnect;
+
+        // Constructor
+        MiniSocket(const char* port)
+            : port(port) {}
 
         /*
             Function made up of the following:
@@ -62,7 +67,7 @@ class Server {
                 bind() - attach the socket to the port
                 listen() - mark as a passive socket ready to accept connections
         */
-        void init(const char* port) {
+        void init() {
 
             struct addrinfo hints{}, *res;
             hints.ai_family = AF_UNSPEC; // use IPv4 or IPv6, whichever
@@ -242,6 +247,9 @@ class Server {
 
                 // text frame -> call handler function (if it has been passed in to minisocket)
                if (frame.opcode == 0x1) {
+
+                std::cout << "PAYLOAD: " << frame.payload.c_str()  << std::endl;
+
                 if (on_message) on_message(client_fd, frame.payload);
                }
             }

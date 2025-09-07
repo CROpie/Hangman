@@ -75,7 +75,7 @@ async function startSocket(renderService: RenderService): Promise<void> {
     const ws = new WebSocket(config.WS_HOST)
 
     ws.onopen = () => {
-        ws.send(JSON.stringify({initialConnect: true, username }))
+        ws.send(JSON.stringify({action: "join", username }))
     }
 
     ws.onmessage = (event) => {
@@ -88,12 +88,12 @@ async function startSocket(renderService: RenderService): Promise<void> {
 
         if (gameState.isWin) {
             alert("You win!!")
-            ws.send(JSON.stringify({isReset: true}))
+            ws.send(JSON.stringify({action: "reset"}))
         }
     }
     
     document.addEventListener("keypress", (e) => {
-        ws.send(JSON.stringify({letter: e.key}));
+        ws.send(JSON.stringify({action: "play", letter: e.key}));
     })
 }
 
