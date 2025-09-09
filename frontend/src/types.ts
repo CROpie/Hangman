@@ -1,5 +1,7 @@
 export type Config = {
-    WS_HOST: string
+    WS_HOST: string,
+    LOGIN_URL: string,
+    AUTH_URL: string
 }
 
 type Meta = {
@@ -11,12 +13,30 @@ type GameState = {
     guessState: string
 }
 
-export type HangmanResponse = {
+export type GameStateResponse = {
+    type: "gameState"
     meta: Meta
     gameState: GameState
 }
 
-export interface RenderService {
+export type Chat = {
+    message: string
+    sender: string
+}
+
+export type MessageResponse = {
+    type: "message"
+    chatHistory: Chat[]
+}
+
+export type HangmanResponse = GameStateResponse | MessageResponse
+
+export interface CanvasRenderService {
     init: () => void
     render: (guessState: string, username: string) => void
+}
+
+export interface MessageRenderService {
+    init: () => void
+    renderChatHistory: (chatHistory: Chat[]) => void
 }

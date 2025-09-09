@@ -1,7 +1,7 @@
 /*
 
     Minimal server-side websocket implementation using threads to handle multiple clients
-    Version: 1.1.0
+    Version: 1.1.1
     Requires -lcrypto
     https://github.com/CROpie/WebSocketInCpp
 

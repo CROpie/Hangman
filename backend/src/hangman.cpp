@@ -7,7 +7,6 @@ HangmanGame::HangmanGame(const std::string& word)
         answer = std::set<char>(word.begin(), word.end());
     }
 
-
 bool HangmanGame::isCharInSet(char ch, std::set<char> set) {
     return set.find(ch) != set.end();
 }
@@ -38,6 +37,7 @@ void HangmanGame::handlePlay(char letter) {
     std::string guessState = determineGuessState(); 
 
     isWin = correctGuesses.size() == answer.size();
+
 }
 
 void HangmanGame::startNewGame(std::string newWord) {

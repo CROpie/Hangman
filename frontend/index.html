@@ -7,7 +7,16 @@
     <script type="module" src="./dist/script.js" defer></script>
 </head>
 <body>
-    <h2>Hangman</h2>
-    <canvas id="renderCanvas" width="400" height="200" style="border:1px solid black;"></canvas>
+    <section id="canvas">
+        <h2>Hangman</h2>
+        <canvas id="renderCanvas" width="400" height="200" style="border:1px solid black;"></canvas>
+    </section>
+    <section id="messages">
+        <ul id="messageList"></ul>
+    </section>
+    <section id="inputArea">
+        <input id="userInput" type="text" disabled/>
+    </section>
+    <button id="resetButton" type="button" disabled>New Game</button>
 </body>
 </html>
