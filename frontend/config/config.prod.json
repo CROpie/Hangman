@@ -1,5 +1,5 @@
 {
     "WS_HOST": "wss://hangman.cropie.online/ws",
-    "LOBBY_URL": "http://lobby.cropie.online/",
-    "AUTH_BASE_URL": "http://auth.cropie.online"
+    "LOBBY_URL": "https://lobby.cropie.online/",
+    "AUTH_BASE_URL": "https://auth.cropie.online"
 }
