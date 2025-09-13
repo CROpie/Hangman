@@ -70,8 +70,6 @@ function MessageRenderService() {
     return { init, appendMessage, renderChatHistory }
 }
 
-
-
 function GameController(canvasRenderService: CanvasRenderService, messageRenderService: MessageRenderService) {
 
     let ws: WebSocket
@@ -85,7 +83,7 @@ function GameController(canvasRenderService: CanvasRenderService, messageRenderS
     let resetButton: HTMLButtonElement
 
     function init(userData: any, hostUrl: string) {
-        // const userdata = getCookie("user")
+
         if (!userData) throw new Error("No user data")
 
         const inputEl = document.getElementById("userInput")
@@ -205,19 +203,16 @@ function GameController(canvasRenderService: CanvasRenderService, messageRenderS
 
 function AuthService() {
 
-    let token = ''
-    let returnUrl = ''
-    let authenticationUrl = ''
+    let lobbyUrl = ''
+    let authBaseUrl = ''
     let userData = ''
 
-    async function validateTokenExtractUserdata(): Promise<boolean> {
+    async function validateToken(): Promise<boolean> {
         try {
 
-            const response = await fetch(authenticationUrl, {
+            const response = await fetch(`${authBaseUrl}/api/authenticate`, {
                     method: "GET",
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
+                    credentials: 'include'
                 })
     
             let json;
@@ -241,8 +236,6 @@ function AuthService() {
 
             userData = JSON.stringify(json.data)
     
-            // setCookie("user", JSON.stringify(json.data))
-    
             return true
     
         } catch (error) {
@@ -251,27 +244,13 @@ function AuthService() {
         }
     }
 
-    function init({retUrl, authUrl}: {retUrl: string, authUrl: string}): boolean {
-        returnUrl = retUrl
-        authenticationUrl = authUrl
-        token = getCookie('token')
-        if (!token) {
-            console.error("cookie key 'token' has no value")
-            sendToReturnUrl()
-            return false
-        }
-        return true
-    }
-
-    function getCookie(name: string) {
-        const matches = document.cookie.match(new RegExp(
-            `(?:^|; )${name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1')}=([^;]*)`
-        ));
-        return matches ? decodeURIComponent(matches[1]!) : "";
+    function init({LOBBY_URL, AUTH_BASE_URL}: {LOBBY_URL: string, AUTH_BASE_URL: string}) {
+        lobbyUrl = LOBBY_URL
+        authBaseUrl = AUTH_BASE_URL
     }
 
     function sendToReturnUrl() {
-        window.location.href = returnUrl
+        window.location.href = lobbyUrl
     }
 
     function getUserData() {
@@ -280,7 +259,7 @@ function AuthService() {
 
 
 
-    return { init, sendToReturnUrl, validateTokenExtractUserdata, getUserData }
+    return { init, sendToReturnUrl, validateToken, getUserData }
 }
 
 async function loadConfig(): Promise<Config> {
@@ -294,12 +273,9 @@ async function init() {
 
     const authService = AuthService()
 
-    if (!authService.init({ retUrl: config.LOGIN_URL, authUrl: config.AUTH_URL })) {
-        authService.sendToReturnUrl
-        return
-    }
+    authService.init({ LOBBY_URL: config.LOBBY_URL, AUTH_BASE_URL: config.AUTH_BASE_URL })
 
-    if (!await authService.validateTokenExtractUserdata()){
+    if (!await authService.validateToken()){
         authService.sendToReturnUrl
         return
     }

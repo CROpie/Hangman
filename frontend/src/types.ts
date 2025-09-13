@@ -1,7 +1,7 @@
 export type Config = {
     WS_HOST: string,
-    LOGIN_URL: string,
-    AUTH_URL: string
+    LOBBY_URL: string,
+    AUTH_BASE_URL: string
 }
 
 type Meta = {

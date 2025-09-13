@@ -64,7 +64,6 @@ function GameController(canvasRenderService, messageRenderService) {
     let userInput;
     let resetButton;
     function init(userData, hostUrl) {
-        // const userdata = getCookie("user")
         if (!userData)
             throw new Error("No user data");
         const inputEl = document.getElementById("userInput");
@@ -158,17 +157,14 @@ function GameController(canvasRenderService, messageRenderService) {
     return { init };
 }
 function AuthService() {
-    let token = '';
-    let returnUrl = '';
-    let authenticationUrl = '';
+    let lobbyUrl = '';
+    let authBaseUrl = '';
     let userData = '';
-    async function validateTokenExtractUserdata() {
+    async function validateToken() {
         try {
-            const response = await fetch(authenticationUrl, {
+            const response = await fetch(`${authBaseUrl}/api/authenticate`, {
                 method: "GET",
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
+                credentials: 'include'
             });
             let json;
             // just handing the situation where data might be empty or not json
@@ -187,7 +183,6 @@ function AuthService() {
                 return false;
             }
             userData = JSON.stringify(json.data);
-            // setCookie("user", JSON.stringify(json.data))
             return true;
         }
         catch (error) {
@@ -195,28 +190,17 @@ function AuthService() {
             return false;
         }
     }
-    function init({ retUrl, authUrl }) {
-        returnUrl = retUrl;
-        authenticationUrl = authUrl;
-        token = getCookie('token');
-        if (!token) {
-            console.error("cookie key 'token' has no value");
-            sendToReturnUrl();
-            return false;
-        }
-        return true;
-    }
-    function getCookie(name) {
-        const matches = document.cookie.match(new RegExp(`(?:^|; )${name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1')}=([^;]*)`));
-        return matches ? decodeURIComponent(matches[1]) : "";
+    function init({ LOBBY_URL, AUTH_BASE_URL }) {
+        lobbyUrl = LOBBY_URL;
+        authBaseUrl = AUTH_BASE_URL;
     }
     function sendToReturnUrl() {
-        window.location.href = returnUrl;
+        window.location.href = lobbyUrl;
     }
     function getUserData() {
         return userData;
     }
-    return { init, sendToReturnUrl, validateTokenExtractUserdata, getUserData };
+    return { init, sendToReturnUrl, validateToken, getUserData };
 }
 async function loadConfig() {
     const response = await fetch("dist/config.json");
@@ -225,11 +209,8 @@ async function loadConfig() {
 async function init() {
     const config = await loadConfig();
     const authService = AuthService();
-    if (!authService.init({ retUrl: config.LOGIN_URL, authUrl: config.AUTH_URL })) {
-        authService.sendToReturnUrl;
-        return;
-    }
-    if (!await authService.validateTokenExtractUserdata()) {
+    authService.init({ LOBBY_URL: config.LOBBY_URL, AUTH_BASE_URL: config.AUTH_BASE_URL });
+    if (!await authService.validateToken()) {
         authService.sendToReturnUrl;
         return;
     }

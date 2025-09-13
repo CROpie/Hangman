@@ -1,5 +1,5 @@
 {
     "WS_HOST": "ws://127.0.0.1:9002",
-    "LOGIN_URL": "http://localhost:1234",
-    "AUTH_URL": "http://localhost:8000/api/authenticate"
+    "LOBBY_URL": "http://localhost:1234/lobby/",
+    "AUTH_BASE_URL": "http://localhost:1234/auth"
 }
