@@ -30,8 +30,11 @@ jobs:
       - name: Prepare files for deployment
         run: |
           rm -rf deploy && mkdir deploy
-          cp frontend/index.html deploy
+          cp frontend/index.html deploy/
           cp -r frontend/dist deploy/
+          cp -r frontend/images deploy/
+          cp -r frontend/styles deploy/
+
 
       - name: Deploy to droplet
         uses: appleboy/scp-action@v0.1.5
@@ -73,15 +76,19 @@ jobs:
           overwrite: true
           strip_components: 2
 
-      - name: Restart backend
+  restart-resources:
+    runs-on: ubuntu-22.04
+    needs: [build-and-deploy-frontend, build-and-deploy-backend]
+    steps:
+      - name: Restart tmux
         uses: appleboy/ssh-action@v0.1.5
         with:
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
           script: |
-            sudo systemctl stop hangmanbackend
-            cd /var/www/hangman/backend
+            cd /var/www/lobby
             mv ./tmp/* .
             rm -rf ./tmp
-            sudo systemctl start hangmanbackend
+            cd ..
+            ./start.sh
