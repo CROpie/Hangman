@@ -10,15 +10,22 @@ function CanvasRenderService() {
     let FONT = "48px 'Excalifont'"
     const COLOUR = "white"
     let hangmanSprites = new Image()
+    let imagePath = ''
 
     let canvas: HTMLCanvasElement
     let ctx: CanvasRenderingContext2D
     const image = new Image()
     image.src = "https://hangman.cropie.online/avatars/rp.jpg"
     
-    async function init() {
+    async function init({IMAGE_PATH}: {IMAGE_PATH: string}) {
+        imagePath = IMAGE_PATH
+
         await document.fonts.load("48px 'Excalifont'")
-        hangmanSprites.src = "/hangman/images/hangman-sprites.png"
+        // pass in images directory as part of config
+        // local path is localhost:1234/hangman/images/hangman-sprites.png
+        // prod path is hangman.cropie.online/images/hangman-sprites.png
+
+        hangmanSprites.src = `${imagePath}/images/hangman-sprites.png`
 
         const canvasEl = document.getElementById("renderCanvas")
         if (!(canvasEl instanceof HTMLCanvasElement)) throw new Error("no canvas")
@@ -33,6 +40,18 @@ function CanvasRenderService() {
     }
 
     function render(guessState: string, misses: number, username: string) {
+        console.log({guessState, length: guessState.length})
+
+        const MAX = 750
+        const size = Math.floor(MAX / guessState.length)
+
+        // spaces take up less space. 1.5x seems safe
+        FONT = `${1.5 * size}px 'Excalifont'`
+
+        ctx.font = FONT
+
+        console.log({FONT})
+
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         ctx.fillText(guessState.toUpperCase(), 50, 100)
         // ctx.fillText(username, 30, 30)
@@ -45,11 +64,12 @@ function CanvasRenderService() {
     function drawHangman(misses: number) {
         const height = 200
         const width = 233
+        const centerX = (800 - width) / 2
         ctx.drawImage(
             hangmanSprites, // sprite sheet
             misses * width, 0, // source X, Y (from top-left corner)
             width, height, // width and height to copy from image
-            0, 200, // destination X, Y (from top-left corner)
+            centerX, 200, // destination X, Y (from top-left corner)
             width, height // width and height to draw on canvas
         )
     }
@@ -223,7 +243,6 @@ function GameController(canvasRenderService: CanvasRenderService, messageRenderS
 
 }
 
-
 function AuthService() {
 
     let lobbyUrl = ''
@@ -299,18 +318,22 @@ async function init() {
     authService.init({ LOBBY_URL: config.LOBBY_URL, AUTH_BASE_URL: config.AUTH_BASE_URL })
 
     if (!await authService.validateToken()){
-        authService.sendToReturnUrl
+        authService.sendToReturnUrl()
         return
     }
 
     const canvasRenderService = CanvasRenderService()
-    await canvasRenderService.init()
+    await canvasRenderService.init({IMAGE_PATH: config.IMAGE_PATH})
 
     const messageRenderService = MessageRenderService()
     messageRenderService.init()
 
     const gameController = GameController(canvasRenderService, messageRenderService)
     gameController.init(authService.getUserData(), config.WS_HOST)
+
+    document.getElementById("lobbyBtn")?.addEventListener('click', () => {
+        authService.sendToReturnUrl()
+    })
 }
 
 onload = init

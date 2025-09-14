@@ -60,6 +60,20 @@ nav + * {
     padding-top: var(--nav-height);
 }
 
+/* LOBBY BUTTON */
+#lobbyBtn {
+    background-color: transparent;
+    border-color: lime;
+    color: lime;
+    border-radius: 8px;
+    padding: 4px 12px;
+}
+
+#lobbyBtn:hover {
+    border-color: darkgreen;
+    color: darkgreen;
+}
+
 /* LOGOUT BUTTON */
 
 #logoutBtn {

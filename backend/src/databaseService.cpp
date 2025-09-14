@@ -5,7 +5,7 @@ DatabaseService::DatabaseService(dbConn::Connector& dbConnector)
 
 std::string DatabaseService::getWordFromDB() {
     // number of words in the DB
-    int N = 2;
+    int N = 5;
     int num = getRandom(N);
 
     std::ostringstream sqlString;
@@ -15,8 +15,6 @@ std::string DatabaseService::getWordFromDB() {
     if (word.empty()) throw std::runtime_error("unable to retrieve word from DB");
 
     return word;
-
-    // answer = std::set<char>(word.begin(), word.end());
 }
 
 int DatabaseService::getRandom(int N) {

@@ -21,8 +21,10 @@ std::string HangmanGame::determineGuessState() {
         } else {
             guessState << "_ ";
         }
-        guessState << "\n";
+        // guessState << "\n";
     }
+
+    guessState << "\n";
 
     return guessState.str();
 

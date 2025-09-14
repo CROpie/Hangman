@@ -1,5 +1,6 @@
 {
     "WS_HOST": "ws://127.0.0.1:9002",
     "LOBBY_URL": "http://localhost:1234/lobby/",
-    "AUTH_BASE_URL": "http://localhost:1234/auth"
+    "AUTH_BASE_URL": "http://localhost:1234/auth",
+    "IMAGE_PATH": "/hangman"
 }
