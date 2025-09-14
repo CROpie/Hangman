@@ -87,8 +87,11 @@ jobs:
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
           script: |
-            cd /var/www/lobby
+            if tmux has-session -t prod 2>/dev/null; then
+              tmux kill-session -t prod
+            fi
+            cd /var/www/hangman/backend
             mv ./tmp/* .
             rm -rf ./tmp
-            cd ..
+            cd ../..
             ./start.sh
