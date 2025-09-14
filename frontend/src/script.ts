@@ -7,15 +7,19 @@ import type { Config, GameStateResponse, HangmanResponse, MessageResponse, Canva
 
 function CanvasRenderService() {
 
-    const FONT = "30px Arial"
-    const COLOUR = "blue"
+    let FONT = "48px 'Excalifont'"
+    const COLOUR = "white"
+    let hangmanSprites = new Image()
 
     let canvas: HTMLCanvasElement
     let ctx: CanvasRenderingContext2D
     const image = new Image()
     image.src = "https://hangman.cropie.online/avatars/rp.jpg"
     
-    function init() {
+    async function init() {
+        await document.fonts.load("48px 'Excalifont'")
+        hangmanSprites.src = "/hangman/images/hangman-sprites.png"
+
         const canvasEl = document.getElementById("renderCanvas")
         if (!(canvasEl instanceof HTMLCanvasElement)) throw new Error("no canvas")
         canvas = canvasEl
@@ -28,11 +32,26 @@ function CanvasRenderService() {
         ctx.fillStyle = COLOUR
     }
 
-    function render(guessState: string, username: string) {
+    function render(guessState: string, misses: number, username: string) {
         ctx.clearRect(0, 0, canvas.width, canvas.height)
-        ctx.fillText(username, 30, 30)
-        ctx.fillText(guessState, 50, 100)
-        ctx.drawImage(image, 0, 30, 30, 30)
+        ctx.fillText(guessState.toUpperCase(), 50, 100)
+        // ctx.fillText(username, 30, 30)
+        // ctx.drawImage(image, 0, 30, 30, 30)
+        
+        // sprite sheet has image at position 0, only render when misses is >= 1
+        if (misses) drawHangman(misses - 1)
+    }
+
+    function drawHangman(misses: number) {
+        const height = 200
+        const width = 233
+        ctx.drawImage(
+            hangmanSprites, // sprite sheet
+            misses * width, 0, // source X, Y (from top-left corner)
+            width, height, // width and height to copy from image
+            0, 200, // destination X, Y (from top-left corner)
+            width, height // width and height to draw on canvas
+        )
     }
 
     return { init, render }
@@ -49,20 +68,19 @@ function MessageRenderService() {
     }
 
     function appendMessage(sender: string, message: string) {
-        const li = document.createElement("li")
-        if (sender === "system") {
-            li.textContent = `--- ${message} ---`
-        } else {
-            li.textContent = `${sender}: ${message}`
-        }
 
+        const li = document.createElement("li")
+        li.classList.add(sender === "system" ? "text-system" : "text-player")
+        const span = document.createElement("span")
+        span.textContent = "[" + sender + "]: "
+        li.appendChild(span)
+        li.appendChild(document.createTextNode(message))
         ul.appendChild(li)
     }
 
     function renderChatHistory(chatHistory: Chat[]) {
         ul.innerHTML = ''
         for (const chat of chatHistory) {
-            console.log(chat)
             appendMessage(chat.sender, chat.message)
         }
     }
@@ -75,7 +93,7 @@ function GameController(canvasRenderService: CanvasRenderService, messageRenderS
     let ws: WebSocket
 
     let chatMode = false
-    let isWin = false
+    let disableGame = false
     
     let username = ''
 
@@ -150,8 +168,7 @@ function GameController(canvasRenderService: CanvasRenderService, messageRenderS
                 return
             }
 
-            if (!chatMode && !isWin) {
-                console.log({isWin, chatMode})
+            if (!chatMode && !disableGame) {
                 ws.send(JSON.stringify({action: "play", letter: e.key}));
                 return
             }
@@ -174,12 +191,18 @@ function GameController(canvasRenderService: CanvasRenderService, messageRenderS
     function handleGameState(response: GameStateResponse) {
         const { meta, gameState } = response
     
-        canvasRenderService.render(gameState.guessState, meta.username)
+        canvasRenderService.render(gameState.guessState, gameState.misses, meta.username)
     
         if (gameState.isWin) {
-            isWin = true
+            disableGame = true
             resetButton.disabled = false
         }
+
+        if (gameState.isLose) {
+            disableGame = true
+            resetButton.disabled = false
+        }
+
     }
 
     function handleMessage(response: MessageResponse) {
@@ -190,7 +213,7 @@ function GameController(canvasRenderService: CanvasRenderService, messageRenderS
 
     function handleReset() {
         resetButton.disabled = true
-        isWin = false
+        disableGame = false
         ws.send(JSON.stringify({action: "reset"}))
     }
 
@@ -281,7 +304,7 @@ async function init() {
     }
 
     const canvasRenderService = CanvasRenderService()
-    canvasRenderService.init()
+    await canvasRenderService.init()
 
     const messageRenderService = MessageRenderService()
     messageRenderService.init()

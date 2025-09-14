@@ -19,7 +19,12 @@ json GameController::serializePlayerMetadata(Player player) {
 }
 
 json GameController::serializeGameState() {
-    json gameState{{"isWin", hangmanGame.isWin}, {"guessState", hangmanGame.determineGuessState()}};
+    json gameState{
+        {"isWin", hangmanGame.isWin},
+        {"isLose", hangmanGame.isLose},
+        {"guessState", hangmanGame.determineGuessState()},
+        {"misses", hangmanGame.misses}
+        };
     return gameState;
 }
 
@@ -99,6 +104,11 @@ void GameController::handleWin() {
     sendChatHistory();
 }
 
+void GameController::handleLose() {
+    addMessageToArray("You LOSE!", "system");
+    sendChatHistory();
+}
+
 /*
     {
         action: "join" | "play" | "reset" | "message"
@@ -122,6 +132,7 @@ void GameController::onMessage(int client_fd, const std::string& msg) {
         hangmanGame.handlePlay(letter[0]);
         
         if (hangmanGame.isWin) handleWin();
+        if (hangmanGame.isLose) handleLose();
     }
 
     // reset game state

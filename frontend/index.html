@@ -4,19 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link rel="stylesheet" href="./styles/styles.css">
     <script type="module" src="./dist/script.js" defer></script>
 </head>
 <body>
-    <section id="canvas">
-        <h2>Hangman</h2>
-        <canvas id="renderCanvas" width="400" height="200" style="border:1px solid black;"></canvas>
-    </section>
-    <section id="messages">
-        <ul id="messageList"></ul>
-    </section>
-    <section id="inputArea">
-        <input id="userInput" type="text" disabled/>
-    </section>
-    <button id="resetButton" type="button" disabled>New Game</button>
+    <nav>
+        <button type="button" id="logoutBtn">Log Out</button>
+    </nav>
+    <article id="hangman-page">
+        <section id="playArea">
+            <canvas id="renderCanvas" height="600" width="796"></canvas>
+            <button id="resetButton" type="button" disabled>New Game</button>
+        </section>
+        <section id="messageArea">
+            <ul id="messageList"></ul>
+            <input id="userInput" type="text" disabled placeholder="Press Enter to type"/>
+        </section>
+    </article>
 </body>
 </html>

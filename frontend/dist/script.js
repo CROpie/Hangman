@@ -3,13 +3,16 @@
 //     document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
 // }
 function CanvasRenderService() {
-    const FONT = "30px Arial";
-    const COLOUR = "blue";
+    let FONT = "48px 'Excalifont'";
+    const COLOUR = "white";
+    let hangmanSprites = new Image();
     let canvas;
     let ctx;
     const image = new Image();
     image.src = "https://hangman.cropie.online/avatars/rp.jpg";
-    function init() {
+    async function init() {
+        await document.fonts.load("48px 'Excalifont'");
+        hangmanSprites.src = "/hangman/images/hangman-sprites.png";
         const canvasEl = document.getElementById("renderCanvas");
         if (!(canvasEl instanceof HTMLCanvasElement))
             throw new Error("no canvas");
@@ -21,11 +24,19 @@ function CanvasRenderService() {
         ctx.font = FONT;
         ctx.fillStyle = COLOUR;
     }
-    function render(guessState, username) {
+    function render(guessState, misses, username) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillText(username, 30, 30);
-        ctx.fillText(guessState, 50, 100);
-        ctx.drawImage(image, 0, 30, 30, 30);
+        ctx.fillText(guessState.toUpperCase(), 50, 100);
+        // ctx.fillText(username, 30, 30)
+        // ctx.drawImage(image, 0, 30, 30, 30)
+        // sprite sheet has image at position 0, only render when misses is >= 1
+        if (misses)
+            drawHangman(misses - 1);
+    }
+    function drawHangman(misses) {
+        const height = 200;
+        const width = 233;
+        ctx.drawImage(hangmanSprites, misses * width, 0, width, height, 0, 200, width, height);
     }
     return { init, render };
 }
@@ -39,18 +50,16 @@ function MessageRenderService() {
     }
     function appendMessage(sender, message) {
         const li = document.createElement("li");
-        if (sender === "system") {
-            li.textContent = `--- ${message} ---`;
-        }
-        else {
-            li.textContent = `${sender}: ${message}`;
-        }
+        li.classList.add(sender === "system" ? "text-system" : "text-player");
+        const span = document.createElement("span");
+        span.textContent = "[" + sender + "]: ";
+        li.appendChild(span);
+        li.appendChild(document.createTextNode(message));
         ul.appendChild(li);
     }
     function renderChatHistory(chatHistory) {
         ul.innerHTML = '';
         for (const chat of chatHistory) {
-            console.log(chat);
             appendMessage(chat.sender, chat.message);
         }
     }
@@ -59,7 +68,7 @@ function MessageRenderService() {
 function GameController(canvasRenderService, messageRenderService) {
     let ws;
     let chatMode = false;
-    let isWin = false;
+    let disableGame = false;
     let username = '';
     let userInput;
     let resetButton;
@@ -118,8 +127,7 @@ function GameController(canvasRenderService, messageRenderService) {
                 userInput.value = '';
                 return;
             }
-            if (!chatMode && !isWin) {
-                console.log({ isWin, chatMode });
+            if (!chatMode && !disableGame) {
                 ws.send(JSON.stringify({ action: "play", letter: e.key }));
                 return;
             }
@@ -138,9 +146,13 @@ function GameController(canvasRenderService, messageRenderService) {
     }
     function handleGameState(response) {
         const { meta, gameState } = response;
-        canvasRenderService.render(gameState.guessState, meta.username);
+        canvasRenderService.render(gameState.guessState, gameState.misses, meta.username);
         if (gameState.isWin) {
-            isWin = true;
+            disableGame = true;
+            resetButton.disabled = false;
+        }
+        if (gameState.isLose) {
+            disableGame = true;
             resetButton.disabled = false;
         }
     }
@@ -151,7 +163,7 @@ function GameController(canvasRenderService, messageRenderService) {
     }
     function handleReset() {
         resetButton.disabled = true;
-        isWin = false;
+        disableGame = false;
         ws.send(JSON.stringify({ action: "reset" }));
     }
     return { init };
@@ -215,7 +227,7 @@ async function init() {
         return;
     }
     const canvasRenderService = CanvasRenderService();
-    canvasRenderService.init();
+    await canvasRenderService.init();
     const messageRenderService = MessageRenderService();
     messageRenderService.init();
     const gameController = GameController(canvasRenderService, messageRenderService);

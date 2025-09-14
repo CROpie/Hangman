@@ -10,7 +10,9 @@ type Meta = {
 
 type GameState = {
     isWin: boolean
+    isLose: boolean
     guessState: string
+    misses: number
 }
 
 export type GameStateResponse = {
@@ -33,7 +35,7 @@ export type HangmanResponse = GameStateResponse | MessageResponse
 
 export interface CanvasRenderService {
     init: () => void
-    render: (guessState: string, username: string) => void
+    render: (guessState: string, misses: number, username: string) => void
 }
 
 export interface MessageRenderService {

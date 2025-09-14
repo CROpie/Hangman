@@ -11,11 +11,15 @@ using json = nlohmann::json;
 
 class HangmanGame {
     public:
+        int MISSES_TO_LOSE{12};
+
         std::string word;
         std::set<char> answer;
         std::set<char> guesses;
         std::set<char> correctGuesses;
         bool isWin{false};
+        bool isLose{false};
+        int misses{0};
 
         HangmanGame(const std::string& word);
         

@@ -48,6 +48,7 @@ class GameController {
         void handlePlayerChat(json request);
 
         void handleWin();
+        void handleLose();
 
         // sending data back to client
         json serializeGameState();

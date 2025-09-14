@@ -36,7 +36,10 @@ void HangmanGame::handlePlay(char letter) {
 
     std::string guessState = determineGuessState(); 
 
+    misses = guesses.size() - correctGuesses.size();
+
     isWin = correctGuesses.size() == answer.size();
+    isLose = misses >= MISSES_TO_LOSE;
 
 }
 
@@ -44,6 +47,8 @@ void HangmanGame::startNewGame(std::string newWord) {
     guesses.clear();
     correctGuesses.clear();
     isWin = false;
+    isLose = false;
+    misses = 0;
 
     word = newWord;
     answer = std::set<char>(word.begin(), word.end());
